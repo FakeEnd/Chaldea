@@ -127,7 +127,7 @@ async def run_scheduled_task():
     # Consolidated Options Report
     if all_current_holdings:
         combined_df = pd.concat(all_current_holdings, ignore_index=True)
-        img = TableVisualizer.generate_options_image(combined_df, title=f"All ETFs Options ({today})", date_str=today)
+        img = await bot.loop.run_in_executor(None, lambda: TableVisualizer.generate_options_image(combined_df, title=f"All ETFs Options ({today})", date_str=today))
         if img: await channel.send(file=discord.File(io.BytesIO(img), filename=f"all_options_{today}.png"))
 
     # Consolidated Changes Report
@@ -138,7 +138,7 @@ async def run_scheduled_task():
         else:
             combined_diffs[key] = pd.DataFrame()
 
-    img_changes = TableVisualizer.generate_changes_image(combined_diffs, title=f"All ETFs Changes ({today})", date_str=today)
+    img_changes = await bot.loop.run_in_executor(None, lambda: TableVisualizer.generate_changes_image(combined_diffs, title=f"All ETFs Changes ({today})", date_str=today))
     if img_changes: await channel.send(file=discord.File(io.BytesIO(img_changes), filename=f"all_changes_{today}.png"))
 
     await channel.send("✅ **Daily Task Complete!**")
@@ -275,17 +275,18 @@ async def report(ctx, ticker: str = "ALL", report_type: str = "ALL"):
                 else:
                      display_df['shares_change'] = 0
                 
-                img = TableVisualizer.generate_image(display_df, title=f"{t} Holdings ({latest_date})", date_str=latest_date)
+                # Run visualizer in executor
+                img = await bot.loop.run_in_executor(None, lambda: TableVisualizer.generate_image(display_df, title=f"{t} Holdings ({latest_date})", date_str=latest_date))
                 if img: await ctx.send(file=discord.File(io.BytesIO(img), filename=f"{t}_positions.png"))
 
             # 2. Options Report
             if report_type in ["ALL", "OPTIONS"]:
-                img = TableVisualizer.generate_options_image(df_current, title=f"{t} Options ({latest_date})", date_str=latest_date)
+                img = await bot.loop.run_in_executor(None, lambda: TableVisualizer.generate_options_image(df_current, title=f"{t} Options ({latest_date})", date_str=latest_date))
                 if img: await ctx.send(file=discord.File(io.BytesIO(img), filename=f"{t}_options.png"))
 
             # 3. Changes Report
             if report_type in ["ALL", "CHANGES"]:
-                img = TableVisualizer.generate_changes_image(diffs, title=f"{t} Changes ({latest_date})", date_str=latest_date)
+                img = await bot.loop.run_in_executor(None, lambda: TableVisualizer.generate_changes_image(diffs, title=f"{t} Changes ({latest_date})", date_str=latest_date))
                 if img: await ctx.send(file=discord.File(io.BytesIO(img), filename=f"{t}_changes.png"))
                 
             # 4. Options Changes Report
@@ -301,7 +302,7 @@ async def report(ctx, ticker: str = "ALL", report_type: str = "ALL"):
                         opt_diffs[k] = pd.DataFrame()
                 
                 if has_opt:
-                    img = TableVisualizer.generate_changes_image(opt_diffs, title=f"{t} Options Changes ({latest_date})", date_str=latest_date)
+                    img = await bot.loop.run_in_executor(None, lambda: TableVisualizer.generate_changes_image(opt_diffs, title=f"{t} Options Changes ({latest_date})", date_str=latest_date))
                     await ctx.send(file=discord.File(io.BytesIO(img), filename=f"{t}_opt_changes.png"))
 
     # 2. Generate Consolidated Reports IF ticker is ALL
@@ -313,7 +314,7 @@ async def report(ctx, ticker: str = "ALL", report_type: str = "ALL"):
         # Consolidated Options
         if report_type in ["ALL", "OPTIONS"]:
             combined_df = pd.concat(all_current_holdings, ignore_index=True)
-            img = TableVisualizer.generate_options_image(combined_df, title=f"All ETFs Options ({today})", date_str=today)
+            img = await bot.loop.run_in_executor(None, lambda: TableVisualizer.generate_options_image(combined_df, title=f"All ETFs Options ({today})", date_str=today))
             if img: await ctx.send(file=discord.File(io.BytesIO(img), filename="all_options.png"))
 
         # Consolidated Changes
@@ -325,7 +326,7 @@ async def report(ctx, ticker: str = "ALL", report_type: str = "ALL"):
                 combined_diffs[key] = pd.DataFrame()
 
         if report_type in ["ALL", "CHANGES"]:
-            img = TableVisualizer.generate_changes_image(combined_diffs, title=f"All ETFs Changes ({today})", date_str=today)
+            img = await bot.loop.run_in_executor(None, lambda: TableVisualizer.generate_changes_image(combined_diffs, title=f"All ETFs Changes ({today})", date_str=today))
             if img: await ctx.send(file=discord.File(io.BytesIO(img), filename="all_changes.png"))
 
         # Consolidated Options Changes
@@ -342,7 +343,7 @@ async def report(ctx, ticker: str = "ALL", report_type: str = "ALL"):
                     options_diffs[key] = pd.DataFrame()
             
             if has_opt_changes:
-                img = TableVisualizer.generate_changes_image(options_diffs, title=f"All ETFs Options Changes ({today})", date_str=today)
+                img = await bot.loop.run_in_executor(None, lambda: TableVisualizer.generate_changes_image(options_diffs, title=f"All ETFs Options Changes ({today})", date_str=today))
                 if img: await ctx.send(file=discord.File(io.BytesIO(img), filename="all_opt_changes.png"))
             else:
                  await ctx.send("No option changes detected across all ETFs.")
