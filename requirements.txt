@@ -1,0 +1,10 @@
+discord.py
+pandas
+requests
+playwright
+openpyxl
+tabulate
+matplotlib
+seaborn
+jinja2
+python-dotenv
